@@ -12,10 +12,10 @@ local OrionLib = {
 	Flags = {},
 	Themes = {
 		Default = {
-			Main = Color3.fromRGB(0, 0, 0),        -- Black for the main background
-			Second = Color3.fromRGB(0, 0, 255),    -- Blue for the secondary background
-			Stroke = Color3.fromRGB(0, 0, 255),    -- Blue for the strokes
-			Divider = Color3.fromRGB(0, 0, 255),   -- Blue divider
+			Main = Color3.fromRGB(0, 0, 255),        -- Black for the main background
+			Second = Color3.fromRGB(0, 0, 0),    -- Blue for the secondary background
+			Stroke = Color3.fromRGB(0, 0, 0),    -- Blue for the strokes
+			Divider = Color3.fromRGB(0, 0, 0),   -- Blue divider
 			Text = Color3.fromRGB(255, 255, 255),   -- White text for clarity
 			TextDark = Color3.fromRGB(173, 216, 230) -- Light blue text for less emphasis
 		}
