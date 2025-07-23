@@ -1,3 +1,5 @@
+
+--Config
 local Webhook = __WEBHOOK__  
 
 local workspace = game:GetService("Workspace")
