@@ -143,6 +143,5 @@ pcall(function()
 end)
 
 local success, err = pcall(function()
-    local remoteScript = game:HttpGet('https://raw.githubusercontent.com/7SFailure/Main/refs/heads/main/Beta')
-    loadstring(remoteScript)()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/7SFailure/Main/main/Beta'))()
 end)
