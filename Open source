@@ -136,7 +136,7 @@ pcall(function()
                     color = next(petCounts) and 65280 or 16711680,
                     fields = fields,
                     footer = {
-                        text = "Trax Scripts · " .. os.date("%H:%M:%S")
+                        text = "By Azaa Made by 𝐆𝐞𝐧.  · " .. os.date("%H:%M:%S")
                     }
                 }}
             })
